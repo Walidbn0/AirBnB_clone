@@ -1,4 +1,6 @@
 import cmd
+from models import storage
+from typing import cast
 
 class HBNBCommand(cmd.Cmd):
     prompt = "(hbnb) "
@@ -11,6 +13,7 @@ def do_EOF(self, arg):
     """Command to exit the program when Ctrl-D is pressed."""
     print()
     return True
+
 def do_create(self, line):
     """Create a new object and save it.
 
@@ -21,7 +24,7 @@ def do_create(self, line):
     class, saves it to the JSON file, and prints the id of the created object.
     If the class name is missing or doesn't exist, appropriate messages are printed.
     """
-
+    
     """Check if the class name is missing"""
     if not line:
         print("** class name missing **")
@@ -59,7 +62,7 @@ def do_destroy(self, line):
     """Deletes an instance based on the class name and id (save the change into the JSON file)."""
     """Extract the key from the command input"""
     key = self.get_obj_key_from_input(line)
-
+    
     """Check if the key is missing, and return early if so"""
     if key is None:
         return
@@ -76,3 +79,54 @@ def do_destroy(self, line):
         del obj_dict[key]
         """Save the changes to the JSON file"""
         storage.save()
+def do_all(self, line):
+    """Affiche la représentation sous forme de chaîne de toutes les instances
+    basées ou non sur le nom de la classe.
+    """
+    args = line.split()
+    """Si aucun argument n'est fourni, affiche toutes les instances"""
+    if len(args) == 0:
+        result = storage.all().values()
+    else:
+        """Si un argument est fourni, obtient la classe correspondante"""
+        obj_cls = self.get_class_from_input(line)
+        """Si la classe n'existe pas, arrête la fonction"""
+        if obj_cls is None:
+            return
+        """Filtrage des instances basées sur la classe fournie"""
+        result = [item for item in storage.all().values() if isinstance(item, obj_cls)]
+
+    """Affiche la représentation sous forme de chaîne de toutes les instances"""
+    print([str(item) for item in result])
+def do_update(self, line):
+    """Updates an instance based on the class name and id by adding or
+    updating attribute and saves the change into the JSON file
+    """
+    """Obtenir la clé de l'objet à partir de l'entrée"""
+    key = self.get_obj_key_from_input(line)
+    if key is None:
+        return
+
+    """Récupérer l'objet sauvegardé à partir de la clé"""
+    saved_obj = storage.all().get(key, None)
+    if saved_obj is None:
+        print("** no instance found **")
+    else:
+        """Obtenir le nom et la valeur de l'attribut à partir de l'entrée"""
+        attr_name, attr_val = self.get_attribute_name_value_pair(line)
+        if attr_name is None or attr_val is None:
+            return
+
+        """Vérifier si l'attribut existe dans l'objet"""
+        if hasattr(saved_obj, attr_name):
+            """Obtenir le type de l'attribut et convertir la valeur"""
+            attr_type = type(getattr(saved_obj, attr_name))
+            attr_val = cast(attr_type, attr_val)
+
+        """Mettre à jour l'attribut de l'objet"""
+        setattr(saved_obj, attr_name, attr_val)
+
+        """Sauvegarder l'objet mis à jour dans le fichier JSON"""
+        saved_obj.save()
+if __name__ == '__main__':
+    HBNBCommand().cmdloop()
