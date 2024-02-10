@@ -78,24 +78,26 @@ class HBNBCommand(cmd.Cmd):
             del obj_dict[key]
             """Save the changes to the JSON file"""
             storage.save()
-
     def do_all(self, line):
-        """Prints the string representation of all instances based on the class name."""
-        args = line.split()
-        """If no argument is provided, print all instances"""
-        if len(args) == 0:
+        """Prints the string representation of all instances based or not on
+        the class name.
+        """
+        """Check if no class name is provided"""
+        if not line:
+            """Get all instances"""
             result = storage.all().values()
         else:
-            """If an argument is provided, get the corresponding class"""
+            """Get the class from the input line"""
             obj_cls = self.get_class_from_input(line)
-            """If the class doesn't exist, stop the function"""
+            
+            """Check if the class doesn't exist"""
             if obj_cls is None:
                 return
-            """Filter instances based on the provided class"""
-            result = [item for item in storage.all().values() if isinstance(item, obj_cls)]
+            """Filter instances based on the provided class name"""
+            result = filter(lambda item: isinstance(item, obj_cls), storage.all().values())
+            """Print the string representation of instances"""
+            print([str(item) for item in result])
 
-        """Print the string representation of all instances"""
-        print([str(item) for item in result])
 
     def do_update(self, line):
         """Updates an instance based on the class name and id by adding or
