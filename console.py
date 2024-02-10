@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import cmd
 from models import storage
 from typing import cast
@@ -5,8 +6,12 @@ from typing import cast
 class HBNBCommand(cmd.Cmd):
     prompt = "(hbnb) "
 
+    def emptyline(self):
+        pass
+
     def do_quit(self, arg):
-        """Command to exit the program."""
+        """Quit command to exit the program
+        """
         return True
 
     def do_EOF(self, arg):
