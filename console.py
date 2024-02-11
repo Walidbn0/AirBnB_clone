@@ -61,15 +61,29 @@ class HBNBCommand(cmd.Cmd):
         print(new_obj.id)
 
     def do_show(self, line):
-        """Prints the string representation of an instance based on name and id."""
-        key = self.get_obj_key_from_input(line)
-        if not key:
+        if len(cls_and_id) == 0:
+            print("** class name missing **")
             return
-        saved_obj = storage.all().get(key, None)
-        if saved_obj is None:
-            print("** no instance found **")
-        else:
-            print(saved_obj)
+        elif len(cls_and_id.split(' ')) == 1:
+            print("** instance id missing **")
+            return
+        elif cls_and_id.split(' ')[0] not in classes.keys():
+            print("** class doesn't exist **")
+            return
+        # create a key of the form <class name>.<id> to search in the storage
+        user_key = cls_and_id.split(' ')[0] + '.' + cls_and_id.split(' ')[1]
+
+        storage = FileStorage()
+        storage.reload()
+        all_objects = storage.all()
+
+        # if the user input key is found in the storage, then print the object
+        if user_key in all_objects.keys():
+            print(all_objects[user_key])
+            return
+
+        # if we reach here, then the object is not found.
+        print("** no instance found **")
 
     def do_destroy(self, line):
         """Deletes an instance based on class name and id."""
@@ -83,6 +97,13 @@ class HBNBCommand(cmd.Cmd):
             storage.save()
         else:
             print("** no instance found **")
+    def do_all(self, cls):
+        if not line:
+            result = storage.all().values()
+        else:
+            obj_cls = self.get_class_from_input(line)
+            result = filter(lambda item: isinstance(item, obj_cls), storage.all().values())
+            print([str(item) for item in result])
 
     def do_update(self, line):
         """Updates an instance based on class name and id by adding or updating an attribute."""
@@ -178,6 +199,61 @@ class HBNBCommand(cmd.Cmd):
         except Exception:
             print("** class doesn't exist **")
             return None
+    def default(self, line):
+        if '.' not in line:
+            return super().default(line)
+        cls_name, func_name, id, args = self.parse_input(line)
+        if cls_name is None:
+            print("** class name missing **")
+            return
+        if func_name is None:
+            print("** incorrect function (all, count, show, destroy & update) **")
+            return
+        id = id if id is not None else ""
+        if func_name == "count":
+            self.do_count(f"{cls_name} {id}")
+        elif func_name == "all":
+            self.do_all(line)  # Pass the original line
+        elif func_name == "show":
+            self.do_show(f"{cls_name} {id}")
+        elif func_name == "destroy":
+            self.do_destroy(f"{cls_name} {id}")
+        elif func_name == "update":
+            self.do_update(f"{cls_name} {id} {args}")
+    def parse_input(self, input):
+        args = input.split('.')
+        if len(args) != 2:
+            return None, None, None, None
+
+        cls_name = args[0]
+        valid_commands = ["all", "count", "show", "destroy", "update"]
+        if '(' not in args[1] or ')' not in args[1]:
+            return cls_name, None, None, None
+
+        func_w_args = args[1].split("(")
+        if len(func_w_args) == 0 or func_w_args[0] not in valid_commands:
+            return cls_name, None, None, None
+        func_name = func_w_args[0]
+        f_args = func_w_args[1].strip(')')
+
+        id_match = re.match(r'(^\"[\w-]+\")', f_args)
+        if len(f_args) == 0 or id_match is None:
+            return cls_name, func_name, None, None
+
+        id = id_match.group()
+        f_args = f_args.replace(id, "")
+        id = id.strip('"')
+
+        if len(f_args) == 0:
+            return cls_name, func_name, id, ''
+
+        dict_match = re.match(r'(\{.*\})', f_args.strip(", "))
+        if dict_match is not None:
+            dict_str = dict_match.group().replace("'", '"')
+            return cls_name, func_name, id, json.loads(dict_str)
+
+        f_args = f_args.replace(',', ' ')
+        return cls_name, func_name, id, str(f_args)
 
 if __name__ == '__main__':
     HBNBCommand().cmdloop()
