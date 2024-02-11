@@ -1,6 +1,7 @@
 import json
 import os
 from models.base_model import BaseModel
+from models.user import User  # Ensure User is imported
 
 class FileStorage:
     """FileStorage is a class that serializes instances to a JSON file and deserializes JSON file to instances:"""
