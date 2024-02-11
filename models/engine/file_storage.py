@@ -1,5 +1,6 @@
 import json
 import os
+from models.base_model import BaseModel
 
 class FileStorage:
     """FileStorage is a class that serializes instances to a JSON file and deserializes JSON file to instances:"""
@@ -16,12 +17,21 @@ class FileStorage:
         key = f"{obj.__class__.__name__}.{obj.id}"
         self.__objects[key] = obj
     
-    def save(self):
-        """Serializes __objects to a JSON file."""
+    """ def save(self):
+        Serializes __objects to a JSON file
+        srz_objects = {key: val.to_dict() for key, val in self.__objects.items()}
+        with open(self.__file_path, 'w', encoding='utf-8') as file:
+            json.dump(srz_objects, file)"""
+    
+    def save(self, obj=None):
+        """Serializes __objects to a JSON file. Optionally updates a single object."""
+        if obj is not None:
+            key = f"{obj.__class__.__name__}.{obj.id}"
+            self.__objects[key] = obj
         srz_objects = {key: val.to_dict() for key, val in self.__objects.items()}
         with open(self.__file_path, 'w', encoding='utf-8') as file:
             json.dump(srz_objects, file)
-    
+
     """def reload(self):
         Deserialize the JSON file __file_path to an __objects, if it exists.
         if os.path.isfile(self.__file_path) and os.path.getsize(self.__file_path) > 0:
