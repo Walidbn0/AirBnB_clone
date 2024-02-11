@@ -24,16 +24,11 @@ class BaseModel:
 
         models.storage.new(self)
 
-    def __str__(self) -> str:
-        """String representation of the object. it returns a formatted string containing the class name, instance id, 
-    and a dictionary representation of the object's attributes.
-    """
-        return f"[{self.__class__.__name__}] ({self.id}) {self.__dict__}"
-
     def save(self):
         """Update 'updated_at' with the current datetime to mark changes"""
         self.updated_at = datetime.now()
         models.storage.save(self)
+
 
     def to_dict(self):
         """Returns a dictionary of all instance attributes.
@@ -44,3 +39,7 @@ class BaseModel:
         }
         base_dict["__class__"] = self.__class__.__name__
         return base_dict
+    def __str__(self) -> str:
+        """should print/str representation of the BaseModel instance."""
+        return f"[{self.__class__.__name__}] ({self.id}) {self.__dict__}"
+
