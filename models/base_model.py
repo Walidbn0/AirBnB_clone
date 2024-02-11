@@ -37,9 +37,9 @@ class BaseModel:
     def to_dict(self):
         """Returns a dictionary of all instance attributes.
         """
-        obj_dict = {key: value for key, value in self.__dict__.items() if not key.startswith('_')}
-        obj_dict['__class__'] = self.__class__.__name__
-        obj_dict['created_at'] = self.created_at.isoformat()
-        obj_dict['updated_at'] = self.updated_at.isoformat()
-        return obj_dict
-
+        base_dict = {
+            key: (value.isoformat() if isinstance(value, datetime) else value)
+            for key, value in self.__dict__.items()
+        }
+        base_dict["__class__"] = self.__class__.__name__
+        return base_dict
