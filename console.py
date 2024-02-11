@@ -116,7 +116,7 @@ class HBNBCommand(cmd.Cmd):
             return
 
         """Get instances of the specified class from storage"""
-        instances = storage.all()[class_name]
+        instances = storage.all().get(class_name, [])
 
         """Count the number of instances"""
         count = len(instances)
