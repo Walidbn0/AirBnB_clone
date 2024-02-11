@@ -18,7 +18,7 @@ class HBNBCommand(cmd.Cmd):
         """Command to exit the program when Ctrl-D is pressed."""
         print()
         return True
-
+'''
     def do_create(self, line):
         """Create a new object and save it.
 
@@ -134,6 +134,7 @@ class HBNBCommand(cmd.Cmd):
 
             """Save the updated object to the JSON file"""
             saved_obj.save()
+            '''
 
 if __name__ == '__main__':
     HBNBCommand().cmdloop()
