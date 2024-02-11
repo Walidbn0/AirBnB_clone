@@ -1,4 +1,5 @@
-#!/usr/bin/python3from models.base_models import BaseModel
+#!/usr/bin/python3
+from models.base_model import BaseModel
 
 class City(BaseModel):
     """A class that represents a city

@@ -1,140 +1,107 @@
 #!/usr/bin/python3
 import cmd
 from models import storage
-from typing import cast
+from models.base_model import BaseModel
+from models.user import User
+from models.place import Place
+from models.state import State
+from models.city import City
+from models.amenity import Amenity
+from models.review import Review
+from models.engine.file_storage import FileStorage
+
 
 class HBNBCommand(cmd.Cmd):
     prompt = "(hbnb) "
 
+    def __init__(self):
+        super().__init__()
+        self.class_dict = {
+            'BaseModel': BaseModel,
+            'User': User, 
+            'Place': Place,
+            'State': State,
+            'City': City,
+            'Amenity': Amenity,
+            'Review': Review, # Add User to the class dictionary
+        }
+
     def emptyline(self):
+        """Do nothing upon receiving an empty line."""
         pass
 
     def do_quit(self, arg):
-        """Quit command to exit the program
-        """
+        """Quit command to exit the program."""
         return True
 
     def do_EOF(self, arg):
-        """Command to exit the program when Ctrl-D is pressed."""
+        """EOF command to exit the program."""
         print()
         return True
 
-    def do_create(self, line):
-        """Create a new object and save it.
-
-        Args:
-            line (str): The input line containing the class name.
-
-        This method handles the 'create' command. It creates a new object of the specified
-        class, saves it to the JSON file, and prints the id of the created object.
-        If the class name is missing or doesn't exist, appropriate messages are printed.
-        """
-        """Check if the class name is missing"""
-        if not line:
-            print("** class name missing **")
-            return
-
-        """Get the class from the input line"""
-        obj_cls = self.get_class_from_input(line)
-
-        """Check if the class doesn't exist"""
-        if obj_cls is None:
+    def do_all(self, line):
+        """Prints all string representations of instances based or not on the class name."""
+        if line and line not in self.class_dict:  # Check if class exists
             print("** class doesn't exist **")
             return
+        objects = storage.all()
+        for obj_id, obj in objects.items():
+            if not line or obj.__class__.__name__ == line:
+                print(obj)
 
-        """Create a new object, save it, and print its id"""
-        new_obj = obj_cls()
+    def do_create(self, line):
+        """Creates a new instance of BaseModel or User, saves it to the JSON file, and prints the id."""
+        if line not in self.class_dict:
+            print("** class doesn't exist **" if line else "** class name missing **")
+            return
+        new_obj = self.class_dict[line]()
         new_obj.save()
         print(new_obj.id)
 
     def do_show(self, line):
-        """Print the string representation of an instance based on name and id."""
-        class_name, obj_id = self.get_class_and_id_from_input(line)
-
-        if not class_name:
+        """Shows the string representation of an instance based on class name and id."""
+        args = line.split()
+        if len(args) == 0:
             print("** class name missing **")
-        elif not self.class_exists(class_name):
+            return
+        if args[0] not in self.class_dict:
             print("** class doesn't exist **")
-        elif not obj_id:
+            return
+        if len(args) < 2:
             print("** instance id missing **")
+            return
+        obj = storage.all().get(f"{args[0]}.{args[1]}", None)
+        if not obj:
+            print("** no instance found **")
         else:
-            key = "{}.{}".format(class_name, obj_id)
-            saved_obj = storage.all().get(key, None)
-            print("** no instance found **" if saved_obj is None else saved_obj)
+            print(obj)
 
     def do_destroy(self, line):
-        """Deletes an instance based on the class name and id (save the change into the JSON file)."""
-        """Extract the key from the command input"""
-        key = self.get_obj_key_from_input(line)
-
-        """Check if the key is missing, and return early if so"""
-        if key is None:
+        """Deletes an instance based on class name and id."""
+        args = line.split()
+        if len(args) < 2 or args[0] not in self.class_dict:
+            print("** class name missing **" if len(args) == 0 else "** class doesn't exist **" if args[0] not in self.class_dict else "** instance id missing **")
             return
-
-        """Retrieve the dictionary of all objects from storage"""
-        obj_dict = storage.all()
-
-        """Check if the key exists in the dictionary"""
-        if key not in obj_dict:
-            """Print message if the instance is not found"""
-            print("** no instance found **")
-        else:
-            """Delete the entry corresponding to the key from the dictionary"""
-            del obj_dict[key]
-            """Save the changes to the JSON file"""
+        key = f"{args[0]}.{args[1]}"
+        if key in storage.all():
+            del storage.all()[key]
             storage.save()
-    def do_all(self, line):
-        """Prints the string representation of all instances based or not on
-        the class name.
-        """
-        """Check if no class name is provided"""
-        if not line:
-            """Get all instances"""
-            result = storage.all().values()
         else:
-            """Get the class from the input line"""
-            obj_cls = self.get_class_from_input(line)
-            
-            """Check if the class doesn't exist"""
-            if obj_cls is None:
-                return
-            """Filter instances based on the provided class name"""
-            result = filter(lambda item: isinstance(item, obj_cls), storage.all().values())
-            """Print the string representation of instances"""
-            print([str(item) for item in result])
-
+            print("** no instance found **")
 
     def do_update(self, line):
-        """Updates an instance based on the class name and id by adding or
-        updating attribute and saves the change into the JSON file.
-        """
-        """Get the key of the object from the input"""
-        key = self.get_obj_key_from_input(line)
-        if key is None:
+        """Updates an instance based on class name and id by adding or updating an attribute."""
+        args = line.split()
+        if len(args) < 4 or args[0] not in self.class_dict:
+            print("** class name missing **" if len(args) == 0 else "** class doesn't exist **" if args[0] not in self.class_dict else "** instance id missing **" if len(args) < 2 else "** attribute name missing **" if len(args) < 3 else "** value missing **")
             return
-
-        """Retrieve the saved object from the key"""
-        saved_obj = storage.all().get(key, None)
-        if saved_obj is None:
-            print("** no instance found **")
+        key = f"{args[0]}.{args[1]}"
+        obj = storage.all().get(key, None)
+        if obj:
+            setattr(obj, args[2], args[3].strip('"'))
+            obj.save()
         else:
-            """Get the name and value of the attribute from the input"""
-            attr_name, attr_val = self.get_attribute_name_value_pair(line)
-            if attr_name is None or attr_val is None:
-                return
-
-            """Check if the attribute exists in the object"""
-            if hasattr(saved_obj, attr_name):
-                """Get the type of the attribute and convert the value"""
-                attr_type = type(getattr(saved_obj, attr_name))
-                attr_val = cast(attr_type, attr_val)
-
-            """Update the attribute of the object"""
-            setattr(saved_obj, attr_name, attr_val)
-
-            """Save the updated object to the JSON file"""
-            saved_obj.save()
+            print("** no instance found **")
 
 if __name__ == '__main__':
     HBNBCommand().cmdloop()
-

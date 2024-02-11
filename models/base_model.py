@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 import uuid
 from datetime import datetime
-
 import models
 
 class BaseModel:
@@ -36,7 +35,7 @@ class BaseModel:
 
     def to_dict(self):
         """Returns a dictionary of all instance attributes.
-    """
+        """
         obj_dict = {key: value for key, value in self.__dict__.items() if not key.startswith('_')}
         obj_dict['__class__'] = self.__class__.__name__
         obj_dict['created_at'] = self.created_at.isoformat()
