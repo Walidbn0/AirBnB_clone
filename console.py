@@ -2,7 +2,14 @@
 import cmd
 from models import storage
 from models.base_model import BaseModel
-from models.user import User  # Import User class
+from models.user import User
+from models.place import Place
+from models.state import State
+from models.city import City
+from models.amenity import Amenity
+from models.review import Review
+from models.engine.file_storage import FileStorage
+
 
 class HBNBCommand(cmd.Cmd):
     prompt = "(hbnb) "
@@ -11,7 +18,12 @@ class HBNBCommand(cmd.Cmd):
         super().__init__()
         self.class_dict = {
             'BaseModel': BaseModel,
-            'User': User,  # Add User to the class dictionary
+            'User': User, 
+            'Place': Place,
+            'State': State,
+            'City': City,
+            'Amenity': Amenity,
+            'Review': Review, # Add User to the class dictionary
         }
 
     def emptyline(self):
