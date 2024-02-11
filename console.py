@@ -62,17 +62,14 @@ class HBNBCommand(cmd.Cmd):
 
     def do_show(self, line):
         """Prints the string representation of an instance based on name and id."""
-    key = self.get_obj_key_from_input(line)
-
-    if not key:
-        return
-
-    saved_obj = storage.all().get(key, None)
-
-    if saved_obj is None:
-        print("** no instance found **")
-    else:
-        print(saved_obj)
+        key = self.get_obj_key_from_input(line)
+        if not key:
+            return
+        saved_obj = storage.all().get(key, None)
+        if saved_obj is None:
+            print("** no instance found **")
+        else:
+            print(saved_obj)
 
     def do_destroy(self, line):
         """Deletes an instance based on class name and id."""
