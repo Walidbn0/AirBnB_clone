@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import uuid
 from datetime import datetime
+
 import models
 
 class BaseModel:
@@ -22,7 +23,7 @@ class BaseModel:
 
         models.storage.new(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """String representation of the object. it returns a formatted string containing the class name, instance id, 
     and a dictionary representation of the object's attributes.
     """
