@@ -102,6 +102,87 @@ class HBNBCommand(cmd.Cmd):
             obj.save()
         else:
             print("** no instance found **")
+    def do_count(self, line):
+        """Counts the number of instances of a given class.
+        """
+        args = line.split()
+
+        """Check if class name is missing"""
+        if not args:
+            print("** class name missing **")
+            return
+
+        """Extract class name from the input"""
+        class_name = args[0]
+
+        """Check if the class exists"""
+        if class_name not in storage.classes():
+            print("** class doesn't exist **")
+            return
+
+        """Get instances of the specified class from storage"""
+        instances = storage.all()[class_name]
+
+        """Count the number of instances"""
+        count = len(instances)
+
+        """Print the count of instances"""
+        print(count)
+    def get_obj_key_from_input(self, line):
+        """Parses and returns object key from input."""
+        obj_cls = self.get_class_from_input(line)
+        id_value = self.get_id_from_input(line)
+
+        if obj_cls is None or id_value is None:
+            return None
+
+        return f"{obj_cls.__name__}.{id_value}"
+
+    def get_class_from_input(self, line):
+        """Parses and returns class from input."""
+        cmds = line.split()
+
+        if not cmds or len(cmds) < 1:
+            print("** class name missing **")
+            return None
+
+        return self.get_class(cmds[0])
+
+    def get_id_from_input(self, line):
+        """Parses and returns id from input."""
+        cmds = line.split()
+
+        if len(cmds) < 2:
+            print("** instance id missing **")
+            return None
+
+        return cmds[1]
+
+    def get_attribute_name_value_pair(self, line):
+        """Parses and returns a tuple of attribute name and value."""
+        cmds = line.split()
+
+        attr_name = cmds[2].strip('"') if len(cmds) > 2 else None
+        if attr_name is None:
+            print("** attribute name missing **")
+            return None, None
+
+        attr_val = cmds[3].strip('"') if len(cmds) > 3 else None
+        if attr_val is None:
+            print("** value missing **")
+            return attr_name, None
+
+        return attr_name, attr_val
+
+    def get_class(self, name):
+        """Returns a class from models module using its name."""
+        try:
+            sub_module = re.sub('(?!^)([A-Z]+)', r'_\1', name).lower()
+            module = importlib.import_module(f"models.{sub_module}")
+            return getattr(module, name)
+        except Exception:
+            print("** class doesn't exist **")
+            return None
 
 if __name__ == '__main__':
     HBNBCommand().cmdloop()
