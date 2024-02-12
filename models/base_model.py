@@ -2,7 +2,7 @@
 import uuid
 from datetime import datetime
 
-import models
+from base_model import models
 
 class BaseModel:
     """BaseModels Class"""
