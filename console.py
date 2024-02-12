@@ -8,7 +8,6 @@ from models.state import State
 from models.city import City
 from models.amenity import Amenity
 from models.review import Review
-from models.engine.file_storage import FileStorage
 
 
 class HBNBCommand(cmd.Cmd):
@@ -18,12 +17,12 @@ class HBNBCommand(cmd.Cmd):
         super().__init__()
         self.class_dict = {
             'BaseModel': BaseModel,
-            'User': User, 
+            'User': User,
             'Place': Place,
             'State': State,
             'City': City,
             'Amenity': Amenity,
-            'Review': Review, # Add User to the class dictionary
+            'Review': Review,
         }
 
     def emptyline(self):
@@ -41,22 +40,26 @@ class HBNBCommand(cmd.Cmd):
 
     def do_all(self, line):
         """Prints all string representations of instances based or not on the class name."""
-        if line and line not in self.class_dict:  # Check if class exists
-            print("** class doesn't exist **")
-            return
         objects = storage.all()
+        obj_list = []
         for obj_id, obj in objects.items():
             if not line or obj.__class__.__name__ == line:
-                print(obj)
+                obj_list.append(obj.__str__())
+        print(obj_list) if obj_list else print("** class doesn't exist **" if line and line not in self.class_dict else "[]")
 
     def do_create(self, line):
-        """Creates a new instance of BaseModel or User, saves it to the JSON file, and prints the id."""
-        if line not in self.class_dict:
-            print("** class doesn't exist **" if line else "** class name missing **")
+        """Creates a new instance of BaseModel, saves it to the JSON file, and prints the id."""
+        if not line:
+            print("** class name missing **")
             return
-        new_obj = self.class_dict[line]()
-        new_obj.save()
-        print(new_obj.id)
+        try:
+            if line not in self.class_dict:
+                raise NameError
+            new_obj = self.class_dict[line]()
+            new_obj.save()
+            print(new_obj.id)
+        except NameError:
+            print("** class doesn't exist **")
 
     def do_show(self, line):
         """Shows the string representation of an instance based on class name and id."""
