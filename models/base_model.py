@@ -2,7 +2,11 @@
 import uuid
 from datetime import datetime
 
+<<<<<<< HEAD
 from base_model import models
+=======
+import models
+>>>>>>> 42dca6ea594996f904d5c8bb69ac389a247468f5
 
 class BaseModel:
     """BaseModels Class"""
